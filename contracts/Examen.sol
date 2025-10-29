@@ -13,7 +13,7 @@ contract MultiSignPaymentWallet {
         uint approvalCount;
         bool executed;
     }
-    Transaction[] public transactions;
+    mapping(uint => Transaction) public transactions; 
     uint public transactionIdCounter; 
 
     struct ApprovalDetails {
@@ -94,19 +94,17 @@ contract MultiSignPaymentWallet {
         require(_to != address(0), "Invalid Address");
         require(amount > 0, "Invalid Amount");
 
-        uint txId = transactionIdCounter ++;
-        
-        transactions.push(
-            Transaction({
-                id : txId,
-                to: _to,
-                amount: amount,
-                approvalCount: 0,
-                executed: false
-            })
-        );
-        emit TransactionSubmitted(transactions.length - 1, _to, amount);
-    }
+        uint txId = transactionIdCounter++; 
+        transactions[txId] = Transaction({
+            id: txId,
+            to: _to,
+            amount: amount,
+            approvalCount: 0,
+            executed: false
+    });
+
+    emit TransactionSubmitted(txId, _to, amount);
+}
 
     function approveTransaction(uint txId) external onlyOwner {
         Transaction storage transaction = transactions[txId];
@@ -157,14 +155,16 @@ contract MultiSignPaymentWallet {
     require(_payee != address(0), "Direccion no valida");
     uint256 balance = address(this).balance;
     require(balance > 0, "No hay fondos");
-
     (bool success, ) = _payee.call{value: balance}("");
     require(success, "Transaccin fallida");
     emit PaymentReleased(_payee, balance);
 }
 
-    function getTransaction() external view returns (Transaction[] memory) {
-        return transactions;
+    function getTransaction() external view returns (Transaction[] memory) {Transaction[] memory allTx = new Transaction[](transactionIdCounter);
+    for (uint i = 0; i < transactionIdCounter; i++) {
+        allTx[i] = transactions[i];
+    }
+    return allTx;
     }
 
     function getBalance() external view returns (uint256) {
