@@ -47,10 +47,10 @@ async function releasePayments(account) {
     return receipt
 }
 
-async function releaseToOneAccount(payee) {
-    const tx = await walletContract.releaseToOneAccount(payee);
+async function releaseToOneAccount(payee, account) {
+    const tx = await createTransaction(WALLET_CONTRACT, contract.abi, 'releaseToOneAccount', [payee], account);
     const receipt = await tx.wait();
-    console.log(`Fondos liberados a ${payee}. Gas usado: ${receipt.gasUsed}`);
+    return receipt;
 }
 
 async function getBalance() {
@@ -64,13 +64,14 @@ async function getTransaction() {
     const transactions = await walletContract.getTransaction()
 
     const formatted = await Promise.all(transactions.map(async (tx, index) => {
-        const approvals = await getDetailsApproval(index)
-        return {
-            to: tx.to,
-            amount: ethers.BigNumber.from(tx.amount).toString(),
-            approvalCount: ethers.BigNumber.from(tx.approvalCount).toString(),
-            executed: tx.executed,
-            approvals: approvals
+       const approvals = await getDetailsApproval(tx.id); 
+    return {
+        id: ethers.BigNumber.from(tx.id).toString(),
+        to: tx.to,
+        amount: ethers.BigNumber.from(tx.amount).toString(),
+        approvalCount: ethers.BigNumber.from(tx.approvalCount).toString(),
+        executed: tx.executed,
+        approvals: approvals
         }
     }))
 
@@ -132,5 +133,6 @@ module.exports={
     addProduct,
     buyProduct,
     disableProduct,
-    getAllProducts
+    getAllProducts,
+    releaseToOneAccount
 }
