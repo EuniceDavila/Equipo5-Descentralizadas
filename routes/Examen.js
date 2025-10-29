@@ -64,6 +64,16 @@ router.post('/release', async (req, res) => {
     }
 });
 
+app.post("/releaseOneAccount", async (req, res) => {
+    const { payee } = req.body;
+    try {
+        await releaseSinglePayee(payee);
+        res.json({ success: true, message: `Fondos enviados a ${payee}` });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 router.get('/transactions', async (req, res) => {
     try {
         const transactions = await walletController.getTransaction();
