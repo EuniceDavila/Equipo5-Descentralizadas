@@ -54,8 +54,6 @@ router.post('/execute', async (req, res) => {
 router.post('/release', async (req, res) => {
     try {
         const { account } = req.body;
-        
-
         const receipt = await walletController.releasePayments(account);
         res.json({ success: true, message: 'Payments released to all payees', receipt });
     } catch (error) {
@@ -64,11 +62,11 @@ router.post('/release', async (req, res) => {
     }
 });
 
-app.post("/releaseOneAccount", async (req, res) => {
-    const { payee } = req.body;
+router.post("/releaseOneAccount", async (req, res) => {
+    const { payee, account } = req.body;
     try {
-        await releaseSinglePayee(payee);
-        res.json({ success: true, message: `Fondos enviados a ${payee}` });
+        const receipt = await walletController.releaseToOneAccount(payee, account);
+        res.json({ success: true, message: `Fondos enviados a ${payee}`, receipt });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
@@ -96,7 +94,7 @@ router.get('/balance', async (req, res) => {
 router.post('/add', async (req, res) => {
   try {
     const { name, price, account } = req.body;
-    const result = await productController.addProduct(name, price, account);
+    const result = await walletController.addProduct(name, price, account);
     res.json({ success: true, message: 'Producto agregado', result });
   } catch (error) {
     console.error('Add product error:', error);
@@ -107,7 +105,7 @@ router.post('/add', async (req, res) => {
 router.post('/buy', async (req, res) => {
   try {
     const { productId, account } = req.body;
-    const result = await productController.buyProduct(productId, account);
+    const result = await walletController.buyProduct(productId, account);
     res.json({ success: true, message: 'Producto comprado', result });
   } catch (error) {
     console.error('Buy product error:', error);
@@ -118,7 +116,7 @@ router.post('/buy', async (req, res) => {
 router.post('/disable', async (req, res) => {
   try {
     const { productId, account } = req.body;
-    const result = await productController.disableProduct(productId, account);
+    const result = await walletController.disableProduct(productId, account);
     res.json({ success: true, message: 'Producto deshabilitado', result });
   } catch (error) {
     console.error('Disable product error:', error);
@@ -128,7 +126,7 @@ router.post('/disable', async (req, res) => {
 
 router.get('/all', async (req, res) => {
   try {
-    const products = await productController.getAllProducts();
+    const products = await walletController.getAllProducts();
     res.json({ success: true, products });
   } catch (error) {
     console.error('Get products error:', error);
