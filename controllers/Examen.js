@@ -47,6 +47,12 @@ async function releasePayments(account) {
     return receipt
 }
 
+async function releaseToOneAccount(payee) {
+    const tx = await walletContract.releaseToOneAccount(payee);
+    const receipt = await tx.wait();
+    console.log(`Fondos liberados a ${payee}. Gas usado: ${receipt.gasUsed}`);
+}
+
 async function getBalance() {
     const walletContract = getContract(WALLET_CONTRACT,contract.abi)
     const balance = await walletContract.getBalance()
