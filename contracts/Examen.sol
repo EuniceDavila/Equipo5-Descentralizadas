@@ -14,7 +14,7 @@ contract MultiSignPaymentWallet {
         bool executed;
     }
     Transaction[] public transactions;
-    uint public nextTxId; //Este es nuestro contador
+    uint public transactionIdCounter; 
 
     struct ApprovalDetails {
         address approver;
@@ -94,7 +94,7 @@ contract MultiSignPaymentWallet {
         require(_to != address(0), "Invalid Address");
         require(amount > 0, "Invalid Amount");
 
-        uint txId = nextTxId++;
+        uint txId = transactionIdCounter ++;
         
         transactions.push(
             Transaction({
@@ -152,6 +152,16 @@ contract MultiSignPaymentWallet {
             emit PaymentReleased(payee, payment);
         }
     }
+
+    function releaseToOneAccount(address _payee) external onlyOwner nonReentrant {
+    require(_payee != address(0), "Direccion no valida");
+    uint256 balance = address(this).balance;
+    require(balance > 0, "No hay fondos");
+
+    (bool success, ) = _payee.call{value: balance}("");
+    require(success, "Transaccin fallida");
+    emit PaymentReleased(_payee, balance);
+}
 
     function getTransaction() external view returns (Transaction[] memory) {
         return transactions;
